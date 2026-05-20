@@ -14,11 +14,15 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   String currentId = "start";
   List<String> messages = [];
+
   bool loading = false;
+
   int trust = 0;
   int pressure = 0;
   int fear = 0;
   int exposure = 0;
+
+  final ScrollController scrollController = ScrollController();
 
   StoryNode get node => story[currentId]!;
 
@@ -28,32 +32,64 @@ class _ChatScreenState extends State<ChatScreen> {
     loadNode();
   }
 
-  void loadNode() async {
+  void scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  Future<void> loadNode() async {
     setState(() {
       loading = true;
     });
 
+    messages.add("[SYSTEM] Connecting...");
+    scrollToBottom();
+
     await Future.delayed(const Duration(milliseconds: 800));
 
+    messages.removeLast();
+
     for (final msg in node.messages) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      messages.add(msg);
-      setState(() {});
+      setState(() {
+        messages.add("Red Rose: is typing...");
+      });
+
+      scrollToBottom();
+
+      await Future.delayed(const Duration(milliseconds: 900));
+
+      setState(() {
+        messages.removeLast();
+        messages.add(msg);
+      });
+
+      scrollToBottom();
+
+      await Future.delayed(const Duration(milliseconds: 300));
     }
 
     setState(() {
       loading = false;
     });
+
+    scrollToBottom();
   }
 
   void choose(String choice) {
     messages.add("You: $choice");
 
-    if (choice.contains("Who")) {
+    if (choice.toLowerCase().contains("who")) {
       trust++;
     }
 
-    if (choice.contains("Leave")) {
+    if (choice.toLowerCase().contains("leave")) {
       pressure++;
       fear++;
     }
@@ -62,34 +98,50 @@ class _ChatScreenState extends State<ChatScreen> {
       exposure++;
     }
 
+    if (fear >= 2) {
+      messages.add("[SYSTEM] Unusual activity detected...");
+    }
+
     String nextId = node.next[choice]!;
 
     if (fear >= 3) {
       nextId = "threat";
+      messages.add("Red Rose: You're not in control.");
     }
 
     if (exposure >= 2) {
       nextId = "end";
+      messages.add("[SYSTEM] Connection terminated.");
     }
 
     currentId = nextId;
 
+    setState(() {});
+
     loadNode();
 
-    setState(() {});
+    scrollToBottom();
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+
       appBar: AppBar(
-        backgroundColor: Colors.red,
-        title: const Text(
-          "RED ROSE",
-          style: TextStyle(letterSpacing: 2, fontWeight: FontWeight.bold),
+        backgroundColor: Colors.black,
+        title: Text(
+          "RED ROSE - ${widget.username}",
+          style: const TextStyle(letterSpacing: 2, fontWeight: FontWeight.bold),
         ),
       ),
+
       body: Column(
         children: [
           Padding(
@@ -99,14 +151,18 @@ class _ChatScreenState extends State<ChatScreen> {
               style: const TextStyle(color: Colors.red),
             ),
           ),
+
           Expanded(
             child: ListView.builder(
+              controller: scrollController,
               padding: const EdgeInsets.all(10),
               itemCount: messages.length,
               itemBuilder: (context, index) {
-                final message = messages[index];
+                final msg = messages[index];
 
-                final isUser = message.startsWith("You:");
+                final isUser = msg.startsWith("You:");
+
+                final isSystem = msg.startsWith("[SYSTEM]");
 
                 return Align(
                   alignment: isUser
@@ -115,20 +171,22 @@ class _ChatScreenState extends State<ChatScreen> {
 
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 5),
-
                     padding: const EdgeInsets.all(12),
-
                     constraints: const BoxConstraints(maxWidth: 300),
 
                     decoration: BoxDecoration(
-                      color: isUser ? Colors.red : Colors.grey[900],
+                      color: isSystem
+                          ? Colors.orange[900]
+                          : isUser
+                          ? Colors.red
+                          : Colors.grey[900],
 
                       borderRadius: BorderRadius.circular(14),
                     ),
 
                     child: Text(
-                      message,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      msg,
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
                     ),
                   ),
                 );
@@ -150,9 +208,18 @@ class _ChatScreenState extends State<ChatScreen> {
               children: node.choices.map((c) {
                 return SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => choose(c),
-                    child: Text(c),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[700],
+                      ),
+                      onPressed: () => choose(c),
+                      child: Text(c),
+                    ),
                   ),
                 );
               }).toList(),
