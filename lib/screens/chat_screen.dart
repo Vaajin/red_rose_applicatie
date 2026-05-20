@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/story_data.dart';
 import '../models/story_node.dart';
+import 'ending_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final String username;
@@ -16,6 +17,7 @@ class _ChatScreenState extends State<ChatScreen> {
   List<String> messages = [];
 
   bool loading = false;
+  bool ended = false;
 
   int trust = 0;
   int pressure = 0;
@@ -80,9 +82,13 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     scrollToBottom();
+
+    checkEndings(); // ✅ IMPORTANT: check after every node load
   }
 
   void choose(String choice) {
+    if (ended) return;
+
     messages.add("You: $choice");
 
     if (choice.toLowerCase().contains("who")) {
@@ -123,6 +129,55 @@ class _ChatScreenState extends State<ChatScreen> {
     scrollToBottom();
   }
 
+  void checkEndings() {
+    if (ended) return;
+
+    if (exposure >= 3) {
+      ended = true;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const EndingScreen(
+            title: "GAME OVER",
+            description: "Everyone knows what you did.",
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (fear >= 5) {
+      ended = true;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const EndingScreen(
+            title: "SUBMISSION",
+            description: "You stopped resisting.",
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (trust >= 6) {
+      ended = true;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const EndingScreen(
+            title: "ACCEPTANCE",
+            description: "Red Rose welcomes you.",
+          ),
+        ),
+      );
+      return;
+    }
+  }
+
   @override
   void dispose() {
     scrollController.dispose();
@@ -133,7 +188,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Text(
@@ -161,29 +215,24 @@ class _ChatScreenState extends State<ChatScreen> {
                 final msg = messages[index];
 
                 final isUser = msg.startsWith("You:");
-
                 final isSystem = msg.startsWith("[SYSTEM]");
 
                 return Align(
                   alignment: isUser
                       ? Alignment.centerRight
                       : Alignment.centerLeft,
-
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 5),
                     padding: const EdgeInsets.all(12),
                     constraints: const BoxConstraints(maxWidth: 300),
-
                     decoration: BoxDecoration(
                       color: isSystem
                           ? Colors.orange[900]
                           : isUser
                           ? Colors.red
                           : Colors.grey[900],
-
                       borderRadius: BorderRadius.circular(14),
                     ),
-
                     child: Text(
                       msg,
                       style: const TextStyle(color: Colors.white, fontSize: 15),
@@ -215,7 +264,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red[700],
+                        backgroundColor: Colors.red,
                       ),
                       onPressed: () => choose(c),
                       child: Text(c),
