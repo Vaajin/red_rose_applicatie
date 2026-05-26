@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/story_data.dart';
 import '../models/story_node.dart';
+import '../widgets/choice_buttons.dart';
+import '../widgets/message_bubble.dart';
 import 'ending_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -83,7 +85,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     scrollToBottom();
 
-    checkEndings(); // ✅ IMPORTANT: check after every node load
+    checkEndings();
   }
 
   void choose(String choice) {
@@ -214,31 +216,7 @@ class _ChatScreenState extends State<ChatScreen> {
               itemBuilder: (context, index) {
                 final msg = messages[index];
 
-                final isUser = msg.startsWith("You:");
-                final isSystem = msg.startsWith("[SYSTEM]");
-
-                return Align(
-                  alignment: isUser
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 5),
-                    padding: const EdgeInsets.all(12),
-                    constraints: const BoxConstraints(maxWidth: 300),
-                    decoration: BoxDecoration(
-                      color: isSystem
-                          ? Colors.orange[900]
-                          : isUser
-                          ? Colors.red
-                          : Colors.grey[900],
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Text(
-                      msg,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
-                    ),
-                  ),
-                );
+                return MessageBubble(message: msg);
               },
             ),
           ),
@@ -252,26 +230,9 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
 
-          if (!loading)
-            Column(
-              children: node.choices.map((c) {
-                return SizedBox(
-                  width: double.infinity,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      onPressed: () => choose(c),
-                      child: Text(c),
-                    ),
-                  ),
-                );
-              }).toList(),
+          if (!loading) 
+          ChoiceButtons(
+            choices: node.choices, onChoose: choose
             ),
         ],
       ),
