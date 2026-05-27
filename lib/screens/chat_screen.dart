@@ -83,6 +83,14 @@ class _ChatScreenState extends State<ChatScreen> {
       loading = false;
     });
 
+    if (engine.trust >= 3) {
+      engine.exposure += 1;
+    }
+
+    if (engine.fear >= 3) {
+      engine.exposure += 1;
+    }
+
     scrollToBottom();
 
     checkEndings();

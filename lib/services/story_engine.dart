@@ -12,30 +12,33 @@ class StoryEngine {
   StoryNode get node => story[currentId]!;
 
   void choose(String choice) {
+    final effects = node.effects[choice];
 
-    if (choice.toLowerCase().contains("who")) {
-      trust++;
-    }
-
-    if (choice.toLowerCase().contains("leave")) {
-      pressure++;
-      fear++;
-    }
-
-    if (pressure >= 2) {
-      exposure++;
+    if (effects != null) {
+      trust += effects["trust"] ?? 0;
+      pressure += effects["pressure"] ?? 0;
+      fear += effects["fear"] ?? 0;
+      exposure += effects["exposure"] ?? 0;
     }
 
     String nextId = node.next[choice]!;
 
     if (fear >= 3) {
-      nextId = "threat";
+      nextId = "soft_threat";
     }
 
     if (exposure >= 2) {
       nextId = "end";
     }
 
+    if (trust >= 6) {
+      exposure += 1;
+    }
+
+    if (fear >= 4) {
+      exposure += 1;
+    }
+    
     currentId = nextId;
   }
 
