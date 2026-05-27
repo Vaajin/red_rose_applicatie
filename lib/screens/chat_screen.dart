@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../data/story_data.dart';
 import '../models/story_node.dart';
+import '../services/story_engine.dart';
 import '../widgets/choice_buttons.dart';
 import '../widgets/message_bubble.dart';
 import 'ending_screen.dart';
@@ -15,20 +15,16 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  String currentId = "start";
+  final StoryEngine engine = StoryEngine();
+
   List<String> messages = [];
 
   bool loading = false;
   bool ended = false;
 
-  int trust = 0;
-  int pressure = 0;
-  int fear = 0;
-  int exposure = 0;
-
   final ScrollController scrollController = ScrollController();
 
-  StoryNode get node => story[currentId]!;
+  StoryNode get node => engine.node;
 
   @override
   void initState() {
@@ -58,7 +54,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     await Future.delayed(const Duration(milliseconds: 800));
 
-    messages.removeLast();
+    if (messages.isNotEmpty) {
+      messages.removeLast();
+    }
 
     for (final msg in node.messages) {
       setState(() {
@@ -70,7 +68,9 @@ class _ChatScreenState extends State<ChatScreen> {
       await Future.delayed(const Duration(milliseconds: 900));
 
       setState(() {
-        messages.removeLast();
+        if (messages.isNotEmpty) {
+          messages.removeLast();
+        }
         messages.add(msg);
       });
 
@@ -91,38 +91,23 @@ class _ChatScreenState extends State<ChatScreen> {
   void choose(String choice) {
     if (ended) return;
 
-    messages.add("You: $choice");
+    setState(() {
+      messages.add("You: $choice");
+    });
 
-    if (choice.toLowerCase().contains("who")) {
-      trust++;
-    }
+    engine.choose(choice);
 
-    if (choice.toLowerCase().contains("leave")) {
-      pressure++;
-      fear++;
-    }
-
-    if (pressure >= 2) {
-      exposure++;
-    }
-
-    if (fear >= 2) {
+    if (engine.fear >= 2) {
       messages.add("[SYSTEM] Unusual activity detected...");
     }
 
-    String nextId = node.next[choice]!;
-
-    if (fear >= 3) {
-      nextId = "threat";
+    if (engine.fear >= 3) {
       messages.add("Red Rose: You're not in control.");
     }
 
-    if (exposure >= 2) {
-      nextId = "end";
+    if (engine.exposure >= 2) {
       messages.add("[SYSTEM] Connection terminated.");
     }
-
-    currentId = nextId;
 
     setState(() {});
 
@@ -134,7 +119,9 @@ class _ChatScreenState extends State<ChatScreen> {
   void checkEndings() {
     if (ended) return;
 
-    if (exposure >= 3) {
+    final ending = engine.getEnding();
+
+    if (ending == "GAME_OVER") {
       ended = true;
 
       Navigator.pushReplacement(
@@ -149,7 +136,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    if (fear >= 5) {
+    if (ending == "SUBMISSION") {
       ended = true;
 
       Navigator.pushReplacement(
@@ -164,7 +151,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    if (trust >= 6) {
+    if (ending == "ACCEPTANCE") {
       ended = true;
 
       Navigator.pushReplacement(
@@ -190,6 +177,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Text(
@@ -203,7 +191,10 @@ class _ChatScreenState extends State<ChatScreen> {
           Padding(
             padding: const EdgeInsets.all(8),
             child: Text(
-              "Trust: $trust | Pressure: $pressure | Fear: $fear | Exposure: $exposure",
+              "Trust: ${engine.trust} | "
+              "Pressure: ${engine.pressure} | "
+              "Fear: ${engine.fear} | "
+              "Exposure: ${engine.exposure}",
               style: const TextStyle(color: Colors.red),
             ),
           ),
@@ -215,7 +206,6 @@ class _ChatScreenState extends State<ChatScreen> {
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final msg = messages[index];
-
                 return MessageBubble(message: msg);
               },
             ),
@@ -230,10 +220,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
 
-          if (!loading) 
-          ChoiceButtons(
-            choices: node.choices, onChoose: choose
-            ),
+          if (!loading) ChoiceButtons(choices: node.choices, onChoose: choose),
         ],
       ),
     );
