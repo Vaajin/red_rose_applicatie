@@ -19,7 +19,7 @@ final Map<String, StoryNode> story = {
     next: {"Who are you?": "hook", "Ignore": "hook"},
     effects: {
       "Who are you?": {"trust": 1},
-      "Ignore": {"pressure": 1, "fear": 1},
+      "Ignore": {"pressure": 1},
     },
   ),
 
@@ -30,7 +30,7 @@ final Map<String, StoryNode> story = {
     next: {"Listen": "task1", "Leave me alone": "warning1"},
     effects: {
       "Listen": {"trust": 1},
-      "Leave me alone": {"pressure": 1, "fear": 1},
+      "Leave me alone": {"pressure": 1, "fear": 1, "exposure": 1},
     },
   ),
 
@@ -44,7 +44,7 @@ final Map<String, StoryNode> story = {
     next: {"Accept": "awareness", "Refuse": "warning1"},
     effects: {
       "Accept": {"trust": 2},
-      "Refuse": {"pressure": 2, "fear": 1},
+      "Refuse": {"pressure": 2, "fear": 1, "exposure": 1},
     },
   ),
 
@@ -64,8 +64,8 @@ final Map<String, StoryNode> story = {
     choices: ["Accept", "Refuse"],
     next: {"Accept": "soft_threat", "Refuse": "soft_threat"},
     effects: {
-      "Accept": {"trust": 1, "fear": 1},
-      "Refuse": {"pressure": 2, "fear": 2},
+      "Accept": {"trust": 1},
+      "Refuse": {"pressure": 2, "fear": 2, "exposure": 1},
     },
   ),
 
@@ -91,7 +91,7 @@ final Map<String, StoryNode> story = {
     choices: ["Continue"],
     next: {"Continue": "final_task"},
     effects: {
-      "Continue": {"fear": 2, "exposure": 1},
+      "Continue": {"fear": 2},
     },
   ),
 
@@ -105,7 +105,7 @@ final Map<String, StoryNode> story = {
     next: {"Accept": "end_path", "Refuse": "warning1"},
     effects: {
       "Accept": {"trust": 2, "exposure": 1},
-      "Refuse": {"pressure": 2, "fear": 2, "exposure": 1},
+      "Refuse": {"pressure": 2, "fear": 2, "exposure": 5},
     },
   ),
 
@@ -125,7 +125,7 @@ final Map<String, StoryNode> story = {
     choices: ["Continue"],
     next: {"Continue": "end"},
     effects: {
-      "Continue": {"trust": 2, "exposure": 2},
+      "Continue": {"trust": 2},
     },
   ),
 

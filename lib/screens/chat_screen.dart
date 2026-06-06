@@ -71,6 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
         if (messages.isNotEmpty) {
           messages.removeLast();
         }
+
         messages.add(msg);
       });
 
@@ -82,14 +83,6 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       loading = false;
     });
-
-    if (engine.trust >= 3) {
-      engine.exposure += 1;
-    }
-
-    if (engine.fear >= 3) {
-      engine.exposure += 1;
-    }
 
     scrollToBottom();
 
@@ -105,15 +98,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
     engine.choose(choice);
 
-    if (engine.fear >= 2) {
+    if (engine.fear >= 4) {
       messages.add("[SYSTEM] Unusual activity detected...");
     }
 
-    if (engine.fear >= 3) {
+    if (engine.fear >= 5) {
       messages.add("Red Rose: You're not in control.");
     }
 
-    if (engine.exposure >= 2) {
+    if (engine.exposure >= 6) {
       messages.add("[SYSTEM] Connection terminated.");
     }
 

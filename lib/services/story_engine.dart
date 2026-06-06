@@ -21,40 +21,22 @@ class StoryEngine {
       exposure += effects["exposure"] ?? 0;
     }
 
-    String nextId = node.next[choice]!;
-
-    if (fear >= 3) {
-      nextId = "soft_threat";
-    }
-
-    if (exposure >= 2) {
-      nextId = "end";
-    }
-
-    if (trust >= 6) {
-      exposure += 1;
-    }
-
-    if (fear >= 4) {
-      exposure += 1;
-    }
-    
-    currentId = nextId;
+    currentId = node.next[choice]!;
   }
 
   String? getEnding() {
-    if (exposure >= 3) {
+    if (exposure >= 7) {
       return "GAME_OVER";
     }
 
-    if (fear >= 5) {
-      return "SUBMISSION";
+    if (currentId != "end") {
+      return null;
     }
 
-    if (trust >= 6) {
+    if (trust >= 6 && trust > fear && trust > pressure) {
       return "ACCEPTANCE";
     }
 
-    return null;
+    return "SUBMISSION";
   }
 }
