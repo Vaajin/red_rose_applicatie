@@ -3,6 +3,7 @@ import '../models/story_node.dart';
 import '../services/story_engine.dart';
 import '../widgets/choice_buttons.dart';
 import '../widgets/message_bubble.dart';
+import 'settings_screen.dart';
 import 'ending_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -185,6 +186,18 @@ class _ChatScreenState extends State<ChatScreen> {
           "RED ROSE - ${widget.username}",
           style: const TextStyle(letterSpacing: 2, fontWeight: FontWeight.bold),
         ),
+        
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+        ],
       ),
 
       body: Column(
